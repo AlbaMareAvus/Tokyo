@@ -6,12 +6,23 @@ from tkinter import Button
 from tkinter import messagebox
 from database.db_handler import *
 from main import show_frame
-
 import cv2
 from PIL import Image, ImageTk
+import customtkinter as ctk
+from face_detection import mtcnn_face_detection, haarcascade_face_detection
 
 # font and font-size
-my_font = ('yu gotic ui', 13)
+my_font = ('yu gotic ui', 12)
+
+
+# application theme
+ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+
+# webcam
+cap = cv2.VideoCapture(0)
+cap.set(3, 1920)
+cap.set(3, 1080)
 
 
 class AuthWindow:
@@ -111,7 +122,7 @@ class AuthWindow:
             messagebox.showinfo('', 'Введите верные данные')
 
 
-class MainWindow:
+class MainWindow(ctk.CTk):
     def __init__(self, window):
         self.window = window
         self.window.geometry('1280x720')
@@ -122,107 +133,121 @@ class MainWindow:
         # Frames
         # =============================================================================================================
         # Background frames
-        self.loginBackgroundFrame = Frame(
-            self.window
+        self.loginBackgroundFrame = ctk.CTkFrame(
+            self.window,
+            fg_color=('#ebebeb', '#1f1f1f'),
         )
-        self.loginBackgroundFrame.config(background='#afebee')
         self.loginBackgroundFrame.rowconfigure(0, weight=1)
         self.loginBackgroundFrame.columnconfigure(0, weight=1)
 
-        self.mainFrameBackground = Frame(
+        self.mainFrameBackground = ctk.CTkFrame(
             self.window,
+            fg_color=('#ebebeb', '#1f1f1f'),
         )
-        self.mainFrameBackground.rowconfigure(0, weight=1)
-        self.mainFrameBackground.columnconfigure(2, weight=1)
+        self.mainFrameBackground.columnconfigure(0, weight=9)
         self.mainFrameBackground.columnconfigure(1, weight=1)
-        self.mainFrameBackground.columnconfigure(0, weight=1)
-
+        self.mainFrameBackground.rowconfigure(0, weight=8)
+        self.mainFrameBackground.rowconfigure(1, weight=2)
         # =============================================================================================================
         # Login frame
-        self.loginCardFrame = Frame(
+        self.loginCardFrame = ctk.CTkFrame(
             self.loginBackgroundFrame,
-            bg='#8e8d8a'
+            fg_color=('#d1d1d1', '#2e2e2e'),
         )
-        self.loginCardFrame.grid(sticky='wesn', row=0, column=0, pady=70, padx=450)
-        self.loginCardFrame.rowconfigure(0, weight=1)
-        self.loginCardFrame.columnconfigure(0, weight=1)
+        self.loginCardFrame.grid(sticky='wesn', row=0, column=0, pady=30, padx=450)
+
+        # Image
+        self.user_login_image = Image.open('images/icons/user.png')
+        login_image = ImageTk.PhotoImage(self.user_login_image)
+        self.login_image_label = ctk.CTkLabel(self.loginCardFrame, image=login_image)
+        self.login_image_label.image = login_image
 
         # Labels
-        self.userNameLabel = Label(
+        self.userNameLabel = ctk.CTkLabel(
             self.loginCardFrame,
             text='Логин:',
-            font=my_font,
-            bg='#8e8d8a'
+            text_font=my_font
         )
-        self.userNameLabel.grid(row=0, column=0, pady=20, padx=20)
 
-        self.userPasswordLabel = Label(
+        self.userPasswordLabel = ctk.CTkLabel(
             self.loginCardFrame,
             text='Пароль:',
-            font=my_font,
-            bg='#8e8d8a'
+            text_font=my_font
         )
-        self.userPasswordLabel.grid(row=2, column=0, pady=20, padx=20)
 
         # Entry
-        self.userNameEntry = Entry(
+        self.userNameEntry = ctk.CTkEntry(
             self.loginCardFrame,
-            font=my_font,
-            highlightthickness=0,
-            bg='#afebee',
-            border=0
+            text_font=my_font,
+            placeholder_text='Введите логин...'
         )
-        self.userNameEntry.grid(sticky='we', row=1, column=0, pady=20, padx=20)
 
-        self.userPasswordEntry = Entry(
+        self.userPasswordEntry = ctk.CTkEntry(
             self.loginCardFrame,
-            font=my_font,
-            highlightthickness=0,
-            bg='#afebee',
             show='*',
-            border=0
+            text_font=my_font,
+            placeholder_text='Введите пароль...'
         )
-        self.userPasswordEntry.grid(sticky='we', row=3, column=0, pady=20, padx=20)
 
         # Buttons
-        self.auth_btn = Button(
+        self.auth_btn = ctk.CTkButton(
             self.loginCardFrame,
             text='Авторизоваться',
+            text_font=my_font,
             command=lambda: self.check_user()
         )
-        self.auth_btn.grid(row=4, column=0, pady=20, sticky='we', padx=20)
+
+        self.login_image_label.pack(pady=(80, 0))
+        self.userNameLabel.pack(anchor='w', pady=(60, 0), padx=(0, 280))
+        self.userNameEntry.pack(fill='x', padx=20, pady=(5, 0))
+        self.userPasswordLabel.pack(anchor='w', pady=(20, 0), padx=(0, 268))
+        self.userPasswordEntry.pack(fill='x', padx=20, pady=(5, 0))
+        self.auth_btn.pack(fill='x', padx=20, pady=(30, 0))
 
         # =============================================================================================================
         # Main frame
-        self.webcamFrame = Frame(
+        self.webcamFrame = ctk.CTkFrame(
             self.mainFrameBackground,
-            bg='#8e8d8a'
+            fg_color=('#dedede', '#2e2e2e')
         )
-        self.webcamFrame.grid(sticky='wens', row=0, column=0, pady=70, padx=20, columnspan=2)
+        self.webcamFrame.columnconfigure(0, weight=1)
+        self.webcamFrame.rowconfigure(0, weight=1)
 
-        self.InfoCardFrame = Frame(
+        self.infoCardFrame = ctk.CTkFrame(
             self.mainFrameBackground,
-            bg='red'
+            fg_color=('#dedede', '#2e2e2e')
         )
-        self.InfoCardFrame.grid(sticky='wens', row=0, column=2, pady=70, padx=20)
+        
+        self.settingsCardFrame = ctk.CTkFrame(
+            self.mainFrameBackground,
+            fg_color=('#dedede', '#2e2e2e')
+        )
 
-        self.f1 = Label(
-            self.webcamFrame
+        self.f1 = ctk.CTkLabel(
+            self.webcamFrame,
+            text='',
+            # fg_color=('#dedede', '#2e2e2e')
+            fg_color='green'
         )
-        self.f1.pack()
+        self.f1.place(relwidth=1, relheight=1)
 
-        self.L1 = Label(
-            self.f1,
-            bg='red'
+        self.webcam_btn = ctk.CTkButton(
+            self.settingsCardFrame,
+            text='Просто кнопка',
+            text_font=my_font,
         )
-        self.L1.pack()
 
-        self.webcam_btn = Button(
-            self.InfoCardFrame,
-            text='Авторизоваться',
-            command=lambda: self.show_webcam()
+        self.switch_theme = ctk.CTkSwitch(
+            master=self.settingsCardFrame,
+            text="Dark Mode",
+            command=self.change_mode
         )
-        self.webcam_btn.grid(row=0, column=0)
+
+        self.webcamFrame.grid(sticky='wens', row=0, column=0, pady=40, padx=20, rowspan=2)
+        self.infoCardFrame.grid(sticky='wens', row=0, column=1, pady=(40, 0), padx=20)
+        self.settingsCardFrame.grid(sticky='wens', row=1, column=1, pady=(20, 40), padx=20)
+        self.webcam_btn.pack(fill='x', padx=10, pady=(20, 0))
+        self.switch_theme.pack(padx=10, pady=20, side='left')
 
         # Logic
         for frame in (self.loginBackgroundFrame, self.mainFrameBackground):
@@ -238,17 +263,33 @@ class MainWindow:
         if user_name == '' or user_password == '':
             messagebox.showinfo('', 'Поля не должны быть пустыми')
         elif auth(user_name, user_password):
-            self.window.state('zoomed')
             self.window.resizable(True, True)
+            self.window.state('zoomed')
             show_frame(self.mainFrameBackground)
+            self.show_webcam()
+            self.switch_theme.select()
         else:
             messagebox.showinfo('', 'Введите верные данные')
 
     def show_webcam(self):
-        cap = cv2.VideoCapture(0)
+        print(int(cap.get(3)), int(cap.get(4)))
         while True:
             img = cap.read()[1]
-            # img = cv2.cvtColor((img, cv2.COLOR_BGR2RGB))
+
+            mtcnn_face_detection(img)
+            # haarcascade_face_detection(img)
+
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = ImageTk.PhotoImage(Image.fromarray(img))
-            self.L1['image'] = img
+            self.f1['image'] = img
             self.webcamFrame.update()
+
+        cap.release()
+        cv2.destroyAllWindows()
+
+    def change_mode(self):
+        if self.switch_theme.get() == 1:
+            ctk.set_appearance_mode("dark")
+        else:
+            ctk.set_appearance_mode("light")
+        self.window.state('zoomed')
