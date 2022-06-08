@@ -4,6 +4,7 @@ from tkinter import Label
 from tkinter import Canvas
 from tkinter import Button
 from tkinter import messagebox
+from tkinter import filedialog as fd
 from database.db_handler import *
 from main import show_frame
 import cv2
@@ -14,6 +15,7 @@ from face_detection import mtcnn_face_detection, haarcascade_face_detection
 # font and font-size
 my_font = ('yu gotic ui', 12)
 
+photo_path = ''
 
 # application theme
 ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
@@ -148,6 +150,11 @@ class MainWindow(ctk.CTk):
         self.mainFrameBackground.columnconfigure(1, weight=1)
         self.mainFrameBackground.rowconfigure(0, weight=8)
         self.mainFrameBackground.rowconfigure(1, weight=2)
+
+        self.addPersonBackgroundFrame = ctk.CTkFrame(
+            self.window,
+            fg_color=('#ebebeb', '#1f1f1f'),
+        )
         # =============================================================================================================
         # Login frame
         self.loginCardFrame = ctk.CTkFrame(
@@ -231,22 +238,31 @@ class MainWindow(ctk.CTk):
         )
         self.f1.place(relwidth=1, relheight=1)
 
-        self.webcam_btn = ctk.CTkButton(
+        self.toplevel_btn = ctk.CTkButton(
             self.settingsCardFrame,
-            text='Просто кнопка',
+            text='Добавить людей',
             text_font=my_font,
+            command=self.create_toplevel
+        )
+
+        self.refresh_database_btn = ctk.CTkButton(
+            self.settingsCardFrame,
+            text='Обновить базу',
+            text_font=my_font
         )
 
         self.switch_theme = ctk.CTkSwitch(
             master=self.settingsCardFrame,
             text="Dark Mode",
-            command=self.change_mode
+            command=self.change_mode,
+            text_font=my_font
         )
 
         self.webcamFrame.grid(sticky='wens', row=0, column=0, pady=40, padx=20, rowspan=2)
         self.infoCardFrame.grid(sticky='wens', row=0, column=1, pady=(40, 0), padx=20)
         self.settingsCardFrame.grid(sticky='wens', row=1, column=1, pady=(20, 40), padx=20)
-        self.webcam_btn.pack(fill='x', padx=10, pady=(20, 0))
+        self.toplevel_btn.pack(fill='x', padx=(10, 0), pady=(20, 0))
+        self.refresh_database_btn.pack(fill='x', padx=(10, 0), pady=(20, 0))
         self.switch_theme.pack(padx=10, pady=20, side='left')
 
         # Logic
@@ -266,18 +282,17 @@ class MainWindow(ctk.CTk):
             self.window.resizable(True, True)
             self.window.state('zoomed')
             show_frame(self.mainFrameBackground)
-            self.show_webcam()
             self.switch_theme.select()
+            self.show_webcam()
         else:
             messagebox.showinfo('', 'Введите верные данные')
 
     def show_webcam(self):
-        print(int(cap.get(3)), int(cap.get(4)))
         while True:
             img = cap.read()[1]
 
-            mtcnn_face_detection(img)
-            # haarcascade_face_detection(img)
+            # mtcnn_face_detection(img)
+            haarcascade_face_detection(img)
 
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = ImageTk.PhotoImage(Image.fromarray(img))
@@ -293,3 +308,92 @@ class MainWindow(ctk.CTk):
         else:
             ctk.set_appearance_mode("light")
         self.window.state('zoomed')
+
+    def choose_photo(self):
+        global photo_path
+        photo_path = fd.askopenfilename()
+        return photo_path
+
+    def add_person(self):
+        global photo_path
+        file_name = photo_path
+        print(file_name)
+
+    def create_toplevel(self):
+        cap.release()
+        cv2.destroyAllWindows()
+        add_person_toplevel = ctk.CTkToplevel()
+        add_person_toplevel.geometry('350x600')
+        add_person_toplevel.title('Добавление новых данных')
+        add_person_toplevel.resizable(0, 0)
+
+        first_name_label = ctk.CTkLabel(
+            add_person_toplevel,
+            text='Имя:',
+            text_font=my_font
+        )
+
+        second_name_label = ctk.CTkLabel(
+            add_person_toplevel,
+            text='Фамилия:',
+            text_font=my_font
+        )
+
+        third_name_label = ctk.CTkLabel(
+            add_person_toplevel,
+            text='Отчество:',
+            text_font=my_font
+        )
+
+        post_label = ctk.CTkLabel(
+            add_person_toplevel,
+            text='Должность:',
+            text_font=my_font
+        )
+
+        first_name_entry = ctk.CTkEntry(
+            add_person_toplevel,
+            text_font=my_font,
+            placeholder_text='Введите имя...'
+        )
+
+        second_name_entry = ctk.CTkEntry(
+            add_person_toplevel,
+            text_font=my_font,
+            placeholder_text='Введите фамилию...'
+        )
+
+        third_name_entry = ctk.CTkEntry(
+            add_person_toplevel,
+            text_font=my_font,
+            placeholder_text='Введите отчество...'
+        )
+
+        combobox = ctk.CTkOptionMenu(
+            master=add_person_toplevel,
+            values=["Инженер-программист", "Тестировщик", "Начальник отдела"]
+        )
+
+        file_name_label = ctk.CTkLabel(
+            add_person_toplevel,
+            text='Фото: ' + self.choose_photo(),
+            text_font=my_font,
+        )
+
+        add_person_btn = ctk.CTkButton(
+            add_person_toplevel,
+            text='Добавить',
+            text_font=my_font,
+            command=self.add_person
+        )
+
+        first_name_label.pack(anchor='w', pady=(30, 0), padx=(0, 240))
+        first_name_entry.pack(fill='x', padx=20, pady=(5, 0))
+        second_name_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
+        second_name_entry.pack(fill='x', padx=20, pady=(5, 0))
+        third_name_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
+        third_name_entry.pack(fill='x', padx=20, pady=(5, 0))
+        post_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
+        combobox.pack(fill='x', pady=(10, 0), padx=20)
+        file_name_label.pack(anchor='w', pady=(20, 0))
+        add_person_btn.pack(fill='x', pady=(10, 0), padx=20)
