@@ -1,7 +1,5 @@
 import cv2
 from mtcnn import MTCNN
-# import torch
-# from facenet_pytorch import MTCNN
 
 detector = MTCNN()
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
