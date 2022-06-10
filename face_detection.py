@@ -9,9 +9,13 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 def mtcnn_face_detection(frame):
     output = detector.detect_faces(frame)
+    temp = []
 
-    for single_output in output:
-        x, y, w, h = single_output['box']
+    if len(output) > 0:
+        temp = output[0]
+
+    if temp:
+        x, y, w, h = temp['box']
         cv2.rectangle(frame, pt1=(x, y), pt2=(x + w, y + h), color=(255, 200, 100), thickness=2)
 
     return frame
