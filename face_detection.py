@@ -1,5 +1,6 @@
 import cv2
 from mtcnn import MTCNN
+from face_recognition import face_recognition
 
 detector = MTCNN()
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
@@ -8,6 +9,8 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 def mtcnn_face_detection(frame):
     output = detector.detect_faces(frame)
     temp = []
+    result = []
+    is_person_in_db = False
 
     if len(output) > 0:
         temp = output[0]
@@ -15,8 +18,11 @@ def mtcnn_face_detection(frame):
     if temp:
         x, y, w, h = temp['box']
         cv2.rectangle(frame, pt1=(x, y), pt2=(x + w, y + h), color=(255, 200, 100), thickness=2)
+        is_person_in_db = face_recognition(temp, frame)
 
-    return frame
+    result.append(frame)
+    result.append(is_person_in_db)
+    return result
 
 
 # from facenet_pytorch import MTCNN

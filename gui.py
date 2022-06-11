@@ -13,6 +13,7 @@ import customtkinter as ctk
 from face_detection import mtcnn_face_detection, haarcascade_face_detection
 import shutil
 import os
+from face_recognition import update_dataset
 
 # font and font-size
 my_font = ('yu gotic ui', 12)
@@ -234,12 +235,14 @@ class MainWindow(ctk.CTk):
             self.mainFrameBackground,
             fg_color=('#dedede', '#2e2e2e')
         )
+        self.settingsCardFrame.columnconfigure(0, weight=1)
+        self.settingsCardFrame.rowconfigure(0, weight=1)
 
         self.f1 = ctk.CTkLabel(
             self.webcamFrame,
             text='',
-            # fg_color=('#dedede', '#2e2e2e')
-            fg_color='green'
+            fg_color=('#dedede', '#2e2e2e')
+            # fg_color='green'
         )
         self.f1.place(relwidth=1, relheight=1)
 
@@ -253,7 +256,8 @@ class MainWindow(ctk.CTk):
         self.refresh_database_btn = ctk.CTkButton(
             self.settingsCardFrame,
             text='Обновить базу',
-            text_font=my_font
+            text_font=my_font,
+            command=self.click_to_update_dataset
         )
 
         self.switch_theme = ctk.CTkSwitch(
@@ -263,12 +267,20 @@ class MainWindow(ctk.CTk):
             text_font=my_font
         )
 
+        self.some_text = ctk.CTkLabel(
+            self.infoCardFrame,
+            text_font=my_font,
+            text='Какой-то текст: ',
+            bg_color='red'
+        )
+
         self.webcamFrame.grid(sticky='wens', row=0, column=0, pady=40, padx=20, rowspan=2)
         self.infoCardFrame.grid(sticky='wens', row=0, column=1, pady=(40, 0), padx=20)
         self.settingsCardFrame.grid(sticky='wens', row=1, column=1, pady=(20, 40), padx=20)
         self.add_person_btn.pack(fill='x', padx=(10, 0), pady=(20, 0))
         self.refresh_database_btn.pack(fill='x', padx=(10, 0), pady=(20, 0))
         self.switch_theme.pack(padx=10, pady=20, side='left')
+        self.some_text.grid(row=0, column=0, sticky='we')
 
         # =============================================================================================================
         # Add Person frame
@@ -386,8 +398,13 @@ class MainWindow(ctk.CTk):
         while True:
             img = cap.read()[1]
 
-            mtcnn_face_detection(img)
+            img, is_verified_person = mtcnn_face_detection(img)
             # haarcascade_face_detection(img)
+
+            if is_verified_person:
+                self.some_text.set_text('Какой-то текст: ' + is_verified_person)
+            else:
+                self.some_text.set_text('Какой-то текст: ')
 
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = ImageTk.PhotoImage(Image.fromarray(img))
@@ -423,6 +440,7 @@ class MainWindow(ctk.CTk):
         second_name = self.second_name_entry.get()
         third_name = self.third_name_entry.get()
         post_name = self.combobox.get()
+        print(first_name, second_name, third_name, post_name, file_name)
         if (
             first_name == '' or
             second_name == '' or
@@ -449,81 +467,6 @@ class MainWindow(ctk.CTk):
         self.combobox.set("Инженер-программист")
         self.file_name_label.set_text("Фото: ")
 
-    # def create_toplevel(self):
-    #     cap.release()
-    #     cv2.destroyAllWindows()
-    #     add_person_toplevel = ctk.CTkToplevel()
-    #     add_person_toplevel.geometry('350x600')
-    #     add_person_toplevel.title('Добавление новых данных')
-    #     add_person_toplevel.resizable(0, 0)
-    #
-    #     first_name_label = ctk.CTkLabel(
-    #         add_person_toplevel,
-    #         text='Имя:',
-    #         text_font=my_font
-    #     )
-    #
-    #     second_name_label = ctk.CTkLabel(
-    #         add_person_toplevel,
-    #         text='Фамилия:',
-    #         text_font=my_font
-    #     )
-    #
-    #     third_name_label = ctk.CTkLabel(
-    #         add_person_toplevel,
-    #         text='Отчество:',
-    #         text_font=my_font
-    #     )
-    #
-    #     post_label = ctk.CTkLabel(
-    #         add_person_toplevel,
-    #         text='Должность:',
-    #         text_font=my_font
-    #     )
-    #
-    #     first_name_entry = ctk.CTkEntry(
-    #         add_person_toplevel,
-    #         text_font=my_font,
-    #         placeholder_text='Введите имя...'
-    #     )
-    #
-    #     second_name_entry = ctk.CTkEntry(
-    #         add_person_toplevel,
-    #         text_font=my_font,
-    #         placeholder_text='Введите фамилию...'
-    #     )
-    #
-    #     third_name_entry = ctk.CTkEntry(
-    #         add_person_toplevel,
-    #         text_font=my_font,
-    #         placeholder_text='Введите отчество...'
-    #     )
-    #
-    #     combobox = ctk.CTkOptionMenu(
-    #         master=add_person_toplevel,
-    #         values=["Инженер-программист", "Тестировщик", "Начальник отдела"]
-    #     )
-    #
-    #     file_name_label = ctk.CTkLabel(
-    #         add_person_toplevel,
-    #         text='Фото: ' + self.choose_photo(),
-    #         text_font=my_font,
-    #     )
-    #
-    #     add_person_btn = ctk.CTkButton(
-    #         add_person_toplevel,
-    #         text='Добавить',
-    #         text_font=my_font,
-    #         command=self.add_person
-    #     )
-    #
-    #     first_name_label.pack(anchor='w', pady=(30, 0), padx=(0, 240))
-    #     first_name_entry.pack(fill='x', padx=20, pady=(5, 0))
-    #     second_name_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
-    #     second_name_entry.pack(fill='x', padx=20, pady=(5, 0))
-    #     third_name_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
-    #     third_name_entry.pack(fill='x', padx=20, pady=(5, 0))
-    #     post_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
-    #     combobox.pack(fill='x', pady=(10, 0), padx=20)
-    #     file_name_label.pack(anchor='w', pady=(20, 0))
-    #     add_person_btn.pack(fill='x', pady=(10, 0), padx=20)
+    def click_to_update_dataset(self):
+        update_dataset()
+        messagebox.showinfo('', 'Перезапустите программу')

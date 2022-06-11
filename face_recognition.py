@@ -7,6 +7,7 @@ from keras.models import load_model
 import cv2
 from mtcnn import MTCNN
 import pickle
+import numpy as np
 
 MyFaceNet = load_model("model/facenet_keras.h5")
 knowing_faces_path = 'images/knowing_faces/'
@@ -53,3 +54,37 @@ def update_dataset():
     pickle.dump(database, data_file)
     data_file.close()
 
+
+def face_recognition(output, frame):
+    myfile = open("database/data.pkl", "rb")
+    database = pickle.load(myfile)
+    myfile.close()
+    x1, y1, w, h = output['box']
+    x2, y2 = x1 + w, y1 + h
+
+    gbr = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    gbr = Img.fromarray(gbr)
+    gbr_array = asarray(gbr)
+
+    face = gbr_array[y1:y2, x1:x2]
+
+    face = Img.fromarray(face)
+    face = face.resize((160, 160))
+    face = asarray(face)
+
+    face = face.astype('float32')
+    mean, std = face.mean(), face.std()
+    face = (face - mean) / std
+
+    face = expand_dims(face, axis=0)
+    signature = MyFaceNet.predict(face)
+
+    min_dist = 100
+    identity = ' '
+    for key, value in database.items():
+        dist = np.linalg.norm(value - signature)
+        if dist < min_dist:
+            min_dist = dist
+            identity = key
+
+    return identity
