@@ -49,7 +49,7 @@ def update_dataset():
 
         database[os.path.splitext(filename)[0]] = signature
 
-    data_file = open("data.pkl", "wb")
+    data_file = open("database/data.pkl", "wb")
     pickle.dump(database, data_file)
     data_file.close()
 

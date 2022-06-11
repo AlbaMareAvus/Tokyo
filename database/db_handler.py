@@ -25,7 +25,7 @@ def add_person_to_database(first_name, second_name, third_name, post_name, file_
 
     cur.execute(
         """
-            INSERT INTO staff (first_name, second_name, third_name, post_name)
+            INSERT INTO staff (first_name, second_name, third_name, post, file_path)
             VALUES (?, ?, ?, ?, ?);
         """, (first_name, second_name, third_name, post_name, file_path)
     )
