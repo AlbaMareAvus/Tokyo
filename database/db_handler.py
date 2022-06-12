@@ -47,3 +47,18 @@ def get_count_of_staff():
     con.close()
 
     return result
+
+
+def get_info_about_person(user_id):
+    con = sqlite3.connect('database/face_recognition_db.db')
+    cur = con.cursor()
+
+    cur.execute(f'SELECT * FROM staff WHERE staff_id="{user_id}";')
+    value = cur.fetchall()
+
+    result = value[0]
+
+    cur.close()
+    con.close()
+
+    return result
