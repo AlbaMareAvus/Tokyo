@@ -53,10 +53,16 @@ def get_info_about_person(user_id):
     con = sqlite3.connect('database/face_recognition_db.db')
     cur = con.cursor()
 
+    result = []
+
     cur.execute(f'SELECT * FROM staff WHERE staff_id="{user_id}";')
     value = cur.fetchall()
 
-    result = value[0]
+    result.append(value[0][1])
+    result.append(value[0][2])
+    result.append(value[0][3])
+    result.append(value[0][4])
+    result.append(value[0][5])
 
     cur.close()
     con.close()
