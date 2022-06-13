@@ -10,7 +10,7 @@ def mtcnn_face_detection(frame):
     output = detector.detect_faces(frame)
     temp = []
     result = []
-    is_person_in_db = False
+    is_person_in_db = ''
 
     if len(output) > 0:
         temp = output[0]
