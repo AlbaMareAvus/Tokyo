@@ -17,6 +17,7 @@ from face_recognition import update_dataset
 
 # font and font-size
 my_font = ('yu gotic ui', 12)
+my_font_for_info_labels = ('yu gotic ui', 13)
 
 photo_path = ''
 knowing_faces_path = 'images/knowing_faces/'
@@ -28,104 +29,7 @@ ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark
 # webcam
 cap = cv2.VideoCapture(0)
 cap.set(3, 1920)
-cap.set(3, 1080)
-
-
-class AuthWindow:
-    def __init__(self, window):
-        self.window = window
-        self.window.geometry('340x540'.format((window.winfo_screenwidth() // 2) - 640,
-                                              (window.winfo_screenheight() // 2) - 360))
-        self.window.title('Авторизация')
-        self.window.resizable(0, 0)
-
-        # Frames
-        self.background = Frame(
-            self.window,
-            width=340,
-            height=540,
-            bg='#afebee'
-        )
-        self.background.place(x=0, y=0)
-
-        # Labels
-        self.userNameLabel = Label(
-            self.background,
-            text='Логин:',
-            font=my_font,
-            bg='#afebee'
-        )
-        self.userNameLabel.place(x=20, y=200)
-
-        self.userPasswordLabel = Label(
-            self.background,
-            text='Пароль:',
-            font=my_font,
-            bg='#afebee'
-        )
-        self.userPasswordLabel.place(x=20, y=300)
-
-        # Entry
-        self.userNameEntry = Entry(
-            self.background,
-            font=my_font,
-            highlightthickness=0,
-            bg='#afebee',
-            border=0
-        )
-        self.userNameEntry.place(x=20, y=240, width=300)
-
-        self.userPasswordEntry = Entry(
-            self.background,
-            font=my_font,
-            highlightthickness=0,
-            bg='#afebee',
-            show='*',
-            border=0
-        )
-        self.userPasswordEntry.place(x=20, y=340, width=300)
-
-        # Lines
-        self.userNameLine = Canvas(
-            self.background,
-            width=300,
-            height=1.5,
-            bg='#fff',
-            highlightthickness=0
-        )
-        self.userNameLine.place(x=20, y=268)
-
-        self.userPasswordLine = Canvas(
-            self.background,
-            width=300,
-            height=2.0,
-            bg='#fff',
-            highlightthickness=0
-        )
-        self.userPasswordLine.place(x=20, y=368)
-
-        # Button
-        self.authBtn = Button(
-            self.background,
-            text='Авторизоваться',
-            cursor='hand2',
-            font=my_font,
-            command=self.check_user
-        )
-        self.authBtn.place(x=20, y=400)
-
-    # commands
-    def check_user(self):
-        user_name = self.userNameEntry.get()
-        user_password = self.userPasswordEntry.get()
-
-        if user_name == '' or user_password == '':
-            messagebox.showinfo('', 'Поля не должны быть пыстыми')
-        elif auth(user_name, user_password):
-            print(auth(user_name, user_password))
-            # go_to_main_page(self)
-        else:
-            messagebox.showinfo('', 'Введите верные данные')
+cap.set(4, 1080)
 
 
 class MainWindow(ctk.CTk):
@@ -154,6 +58,7 @@ class MainWindow(ctk.CTk):
         self.mainFrameBackground.columnconfigure(1, weight=1)
         self.mainFrameBackground.rowconfigure(0, weight=8)
         self.mainFrameBackground.rowconfigure(1, weight=2)
+        self.mainFrameBackground.columnconfigure(1, minsize=380)
 
         self.addPersonBackgroundFrame = ctk.CTkFrame(
             self.window,
@@ -235,16 +140,14 @@ class MainWindow(ctk.CTk):
             self.mainFrameBackground,
             fg_color=('#dedede', '#2e2e2e')
         )
-        self.settingsCardFrame.columnconfigure(0, weight=1)
-        self.settingsCardFrame.rowconfigure(0, weight=1)
 
-        self.f1 = ctk.CTkLabel(
+        self.webcamLabel = ctk.CTkLabel(
             self.webcamFrame,
             text='',
             fg_color=('#dedede', '#2e2e2e')
             # fg_color='green'
         )
-        self.f1.place(relwidth=1, relheight=1)
+        self.webcamLabel.place(relwidth=1, relheight=1)
 
         self.add_person_btn = ctk.CTkButton(
             self.settingsCardFrame,
@@ -262,25 +165,53 @@ class MainWindow(ctk.CTk):
 
         self.switch_theme = ctk.CTkSwitch(
             master=self.settingsCardFrame,
-            text="Dark Mode",
+            text="Темная тема",
             command=self.change_mode,
             text_font=my_font
         )
 
-        self.some_text = ctk.CTkLabel(
+        self.user_image = Image.open('images/icons/woman.png')
+        img_size = (300, 300)
+        self.user_image.thumbnail(img_size)
+        person_image = ImageTk.PhotoImage(self.user_image)
+        self.info_image_label = ctk.CTkLabel(self.infoCardFrame, image=person_image)
+        self.info_image_label.image = person_image
+
+        self.first_name_label_name = ctk.CTkLabel(
             self.infoCardFrame,
-            text_font=my_font,
-            text='Какой-то текст: ',
-            bg_color='red'
+            text='Имя:',
+            text_font=my_font_for_info_labels
+        )
+
+        self.second_name_label_name = ctk.CTkLabel(
+            self.infoCardFrame,
+            text='Фамилия:',
+            text_font=my_font_for_info_labels
+        )
+
+        self.third_name_label_name = ctk.CTkLabel(
+            self.infoCardFrame,
+            text='Отчество:',
+            text_font=my_font_for_info_labels
+        )
+
+        self.post_label_name = ctk.CTkLabel(
+            self.infoCardFrame,
+            text='Должность:',
+            text_font=my_font_for_info_labels
         )
 
         self.webcamFrame.grid(sticky='wens', row=0, column=0, pady=40, padx=20, rowspan=2)
         self.infoCardFrame.grid(sticky='wens', row=0, column=1, pady=(40, 0), padx=20)
         self.settingsCardFrame.grid(sticky='wens', row=1, column=1, pady=(20, 40), padx=20)
-        self.add_person_btn.pack(fill='x', padx=(10, 0), pady=(20, 0))
-        self.refresh_database_btn.pack(fill='x', padx=(10, 0), pady=(20, 0))
-        self.switch_theme.pack(padx=10, pady=20, side='left')
-        self.some_text.grid(row=0, column=0, sticky='we')
+        self.add_person_btn.pack(fill='x', padx=20, pady=(20, 0))
+        self.refresh_database_btn.pack(fill='x', padx=20, pady=(20, 0))
+        self.switch_theme.pack(padx=20, pady=20, side='left')
+        self.info_image_label.pack(pady=(20, 0))
+        self.second_name_label_name.pack(pady=(50, 0), fill='x')
+        self.first_name_label_name.pack(pady=(20, 0), fill='x')
+        self.third_name_label_name.pack(pady=(20, 0), fill='x')
+        self.post_label_name.pack(pady=(20, 0), fill='x')
 
         # =============================================================================================================
         # Add Person frame
@@ -357,17 +288,17 @@ class MainWindow(ctk.CTk):
             command=self.add_person
         )
 
-        self.first_name_label.pack(anchor='w', pady=(30, 0), padx=(0, 240))
-        self.first_name_entry.pack(fill='x', padx=20, pady=(5, 0))
-        self.second_name_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
-        self.second_name_entry.pack(fill='x', padx=20, pady=(5, 0))
-        self.third_name_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
-        self.third_name_entry.pack(fill='x', padx=20, pady=(5, 0))
-        self.post_label.pack(anchor='w', pady=(60, 0), padx=(0, 240))
-        self.combobox.pack(fill='x', pady=(10, 0), padx=20)
-        self.file_name_label.pack(anchor='w', pady=(20, 0))
-        self.choose_file_btn.pack(fill='x', pady=(10, 0), padx=20)
-        self.add_person_btn.pack(fill='x', pady=(10, 0), padx=20)
+        self.second_name_label.pack(fill='x', pady=(60, 0))
+        self.second_name_entry.pack(fill='x', padx=30, pady=(5, 0))
+        self.first_name_label.pack(fill='x', pady=(60, 0))
+        self.first_name_entry.pack(fill='x', padx=30, pady=(5, 0))
+        self.third_name_label.pack(fill='x', pady=(60, 0))
+        self.third_name_entry.pack(fill='x', padx=30, pady=(5, 0))
+        self.post_label.pack(fill='x', pady=(60, 0))
+        self.combobox.pack(fill='x', pady=(10, 0), padx=30)
+        self.file_name_label.pack(fill='x', pady=(20, 0))
+        self.choose_file_btn.pack(fill='x', pady=(10, 0), padx=30)
+        self.add_person_btn.pack(fill='x', pady=(30, 0), padx=30)
 
         # Logic
         for frame in (self.loginBackgroundFrame, self.mainFrameBackground, self.addPersonBackgroundFrame):
@@ -385,6 +316,7 @@ class MainWindow(ctk.CTk):
         elif auth(user_name, user_password):
             self.window.resizable(True, True)
             self.window.state('zoomed')
+            self.window.minsize(1536, 864)
             show_frame(self.mainFrameBackground)
             self.switch_theme.select()
             self.show_webcam()
@@ -397,18 +329,38 @@ class MainWindow(ctk.CTk):
     def show_webcam(self):
         while True:
             img = cap.read()[1]
+            info = []
 
             img, is_verified_person = mtcnn_face_detection(img)
             # haarcascade_face_detection(img)
 
-            if is_verified_person:
-                self.some_text.set_text('Какой-то текст: ' + is_verified_person)
+            if is_verified_person != '':
+                staff_id = int(is_verified_person)
+                first_name, second_name, third_name, post, img_path = get_info_about_person(staff_id)
+                user_image = Image.open(img_path)
+                img_size = (300, 300)
+                user_image.thumbnail(img_size)
+                person_image = ImageTk.PhotoImage(user_image)
+                self.info_image_label.image = person_image
+                self.info_image_label['image'] = self.info_image_label.image
+                self.second_name_label_name.set_text('Фамилия: ' + second_name)
+                self.first_name_label_name.set_text('Имя: ' + first_name)
+                self.third_name_label_name.set_text('Отчество: ' + third_name)
+                self.post_label_name.set_text('Должность: ' + post)
+                self.info_image_label.configure(fg_color='green')
             else:
-                self.some_text.set_text('Какой-то текст: ')
+                person_image = ImageTk.PhotoImage(self.user_image)
+                self.info_image_label.image = person_image
+                self.info_image_label['image'] = self.info_image_label.image
+                self.second_name_label_name.set_text('Фамилия: ')
+                self.first_name_label_name.set_text('Имя: ')
+                self.third_name_label_name.set_text('Отчество: ')
+                self.post_label_name.set_text('Должность: ')
+                self.info_image_label.configure(fg_color=('#dedede', '#2e2e2e'))
 
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = ImageTk.PhotoImage(Image.fromarray(img))
-            self.f1['image'] = img
+            self.webcamLabel['image'] = img
             self.webcamFrame.update()
 
         cap.release()
@@ -451,7 +403,7 @@ class MainWindow(ctk.CTk):
             messagebox.showinfo('', 'Поля не должны быть пустыми')
         else:
             shutil.copy(photo_path, knowing_faces_path)
-            count_of_staff = str(get_count_of_staff())
+            count_of_staff = str(get_count_of_staff() + 1)
             old_file_name, file_ext = os.path.splitext(photo_path)
             split_old_file_name = old_file_name.split('/')
             new_file_name = knowing_faces_path + count_of_staff + file_ext
